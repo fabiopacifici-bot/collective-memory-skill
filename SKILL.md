@@ -20,7 +20,7 @@ Shared knowledge for all NSA Agency agents — **dual mode**:
 1. **Local entries** (curated, permanent) — markdown files in entries/
 2. **Network API** (shared, ephemeral) — REST service on port 8010, accessible by any agent on the mesh
 
-**Location:** `/home/pacificDev/.openclaw/workspace/collective-memory/`
+**Location:** `$OPENCLAW_WORKSPACE/collective-memory/` (default: `~/.openclaw/workspace/collective-memory/`)
 **API Service:** `http://localhost:8010` (Swagger: `/docs`)
 
 ---
@@ -52,7 +52,7 @@ curl http://<olly-host>:8010/health
 
 ## Part 1 — Local File Entries (curated, permanent — Olly's workspace)
 
-For facts, decisions, and knowledge that should persist indefinitely. Stored in `/home/pacificDev/.openclaw/workspace/collective-memory/entries/`.
+For facts, decisions, and knowledge that should persist indefinitely. Stored in `$OPENCLAW_WORKSPACE/collective-memory/entries/`.
 
 ### Semantic search
 ```bash
@@ -62,11 +62,11 @@ python3 {skill_dir}/scripts/search.py "<your question>"
 
 ### Browse all entries
 ```bash
-cat /home/pacificDev/.openclaw/workspace/collective-memory/index.md
+cat "$OPENCLAW_WORKSPACE/collective-memory/index.md"
 ```
 
 ### Write a new entry (Olly only)
-1. Create file: `/home/pacificDev/.openclaw/workspace/collective-memory/entries/YYYY-MM-DD-<slug>.md`
+1. Create file: `$OPENCLAW_WORKSPACE/collective-memory/entries/YYYY-MM-DD-<slug>.md`
 2. YAML frontmatter + body:
 ```markdown
 ---
@@ -80,7 +80,7 @@ confidence: confirmed
 # [Short title]
 [2-5 sentences — the fact, decision, or event]
 ```
-3. Run `python3 /home/pacificDev/.openclaw/workspace/collective-memory/scripts/index.py` to embed it
+3. Run `python3 "$OPENCLAW_WORKSPACE/collective-memory/scripts/index.py"` to embed it
 
 ---
 
@@ -171,7 +171,7 @@ curl -X POST http://localhost:8010/memory \
 
 After writing local entries:
 ```bash
-python3 /home/pacificDev/.openclaw/workspace/collective-memory/scripts/index.py
+python3 "$OPENCLAW_WORKSPACE/collective-memory/scripts/index.py"
 # --rebuild  (wipe and rebuild from scratch)
 # --watch    (index then watch for new files)
 ```
