@@ -48,6 +48,19 @@ Health check (any agent):
 curl http://<olly-host>:8010/health
 ```
 
+### Windows/WSL LAN exposure (if agents can’t reach `192.168.x.x:8010`)
+
+Run on the **Windows host as Administrator**:
+```powershell
+# One-shot update of portproxy + firewall
+powershell -ExecutionPolicy Bypass -File {skill_dir}/scripts/windows/ensure-collective-memory-portproxy.ps1
+
+# Install self-healing startup task (recommended)
+powershell -ExecutionPolicy Bypass -File {skill_dir}/scripts/windows/install-collective-memory-portproxy-task.ps1
+```
+
+This keeps TCP 8010 forwarded to the current WSL IP after reboots/IP changes.
+
 ---
 
 ## Part 1 — Local File Entries (curated, permanent — Olly's workspace)
