@@ -9,12 +9,30 @@
 
 set -e
 
-# Prefer canonical repo location under repositories/
-REPO_DIR="/home/pacificDev/.openclaw/workspace/repositories/multi-agent-collective-memory"
-if [ ! -d "$REPO_DIR" ]; then
-    # Backward-compat fallback
-    REPO_DIR="/home/pacificDev/.openclaw/workspace/multi-agent-collective-memory"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+OPENCLAW_WORKSPACE="${OPENCLAW_WORKSPACE:-$HOME/.openclaw/workspace}"
+
+# Resolve backend repo path portably
+if [ -n "${COLLECTIVE_MEMORY_REPO_DIR:-}" ] && [ -d "$COLLECTIVE_MEMORY_REPO_DIR" ]; then
+    REPO_DIR="$COLLECTIVE_MEMORY_REPO_DIR"
+else
+    for candidate in \
+        "$OPENCLAW_WORKSPACE/repositories/multi-agent-collective-memory" \
+        "$OPENCLAW_WORKSPACE/multi-agent-collective-memory" \
+        "$SCRIPT_DIR/../../multi-agent-collective-memory"; do
+        if [ -d "$candidate" ]; then
+            REPO_DIR="$candidate"
+            break
+        fi
+    done
 fi
+
+if [ -z "${REPO_DIR:-}" ] || [ ! -d "$REPO_DIR" ]; then
+    echo "❌ Could not find multi-agent-collective-memory repo."
+    echo "   Set COLLECTIVE_MEMORY_REPO_DIR to its path."
+    exit 1
+fi
+
 VENV_DIR="$REPO_DIR/.venv-service"
 PORT="${COLLECTIVE_MEMORY_PORT:-8010}"
 PID_FILE="/tmp/collective-memory.pid"
@@ -38,7 +56,11 @@ start_service() {
     cd "$REPO_DIR"
 
     # Start uvicorn in background
-    export HF_HOME=/mnt/e/models/huggingface/hub
+    # Optional override: COLLECTIVE_HF_HOME (or existing HF_HOME)
+    if [ -n "${COLLECTIVE_HF_HOME:-}" ]; then
+        export HF_HOME="$COLLECTIVE_HF_HOME"
+    fi
+
     nohup python -m uvicorn app.main:app \
         --host 0.0.0.0 \
         --port "$PORT" \

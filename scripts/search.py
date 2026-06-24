@@ -5,7 +5,7 @@ search.py — Portable wrapper for collective memory search.
 Discovers the collective-memory data store by:
   1. COLLECTIVE_MEMORY_DIR env var (explicit override)
   2. Walking up from this script's location looking for memory.db
-  3. Common default paths (~/.openclaw/workspace/collective-memory, etc.)
+  3. Common default paths based on HOME / OPENCLAW_WORKSPACE
 
 This script lives inside the skill folder so it ships with the skill —
 no hardcoded absolute paths anywhere.
@@ -39,10 +39,11 @@ def _find_data_dir() -> Path | None:
         current = current.parent
 
     # 3. Common default locations
+    openclaw_workspace = Path(os.environ.get("OPENCLAW_WORKSPACE", str(Path.home() / ".openclaw" / "workspace")))
     defaults = [
-        Path.home() / ".openclaw" / "workspace" / "collective-memory",
+        openclaw_workspace / "collective-memory",
+        openclaw_workspace / "memory" / "collective-memory",
         Path.home() / "workspace" / "collective-memory",
-        Path("/home/pacificDev/.openclaw/workspace/collective-memory"),
     ]
     for d in defaults:
         if (d / "memory.db").exists():
@@ -81,12 +82,12 @@ def embed(text: str) -> list[float] | None:
 
     # 2. Fallback: native SentenceTransformer in-process
     try:
-        _model_path = os.environ.get(
+        _model_name = os.environ.get(
             "COLLECTIVE_EMBED_MODEL",
-            "/mnt/e/models/huggingface/hub_cache/models--unsloth--embeddinggemma-300m-qat-q8_0-unquantized/snapshots/dc4294deb8cbaad174042a020037fb3a5b008976"
+            "sentence-transformers/all-MiniLM-L6-v2"
         )
         from sentence_transformers import SentenceTransformer
-        _st = SentenceTransformer(_model_path)
+        _st = SentenceTransformer(_model_name)
         return _st.encode(text).tolist()
     except Exception as e:
         print(f"[search] embed error: {e}", file=sys.stderr)
@@ -179,10 +180,6 @@ def format_results(results: list[dict]) -> str:
 
 
 if __name__ == "__main__":
-    if not DATA_DIR:
-        print("[search] collective-memory data directory not found", file=sys.stderr)
-        sys.exit(1)
-
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     if not args:
         print("Usage: python3 search.py <query> [--top N] [--json]")
