@@ -74,14 +74,9 @@ def embed(text: str) -> list[float] | None:
         import requests as _req
         r = _req.post(EMBED_URL, json={"input": text}, timeout=5)
         d = r.json()
-        data = d.get("data", [])
-        if not data:
-            return None
-        # OpenAI-compatible: [{"embedding": [...], "index": 0}]
-        # olly-embed-server: [[0.1, 0.2, ...]]
-        if isinstance(data[0], dict) and "embedding" in data[0]:
-            return data[0]["embedding"]
-        return data[0]
+        vec = d.get("data", [None])[0]
+        if vec:
+            return vec
     except Exception:
         pass
 
